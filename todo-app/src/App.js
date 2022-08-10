@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useReducer, useRef, useCallback } from 'react';
 
 import React from 'react';
 
@@ -18,27 +18,47 @@ function createBulkTodos() {
   return array;
 }
 
+function todoReducer(todos, action) {
+  switch (action.type) {
+    case 'INSERT':
+      return todos.concat(action.todo);
+
+    case 'REMOVE':
+      return todos.filter((todo) => todo.id !== action.id);
+
+    case 'TOGGLE':
+      return todos.map((todo) =>
+        todo.id === action.id ? { ...todo, checked: !todo.checked } : todo,
+      );
+
+    default:
+      return todos;
+  }
+}
+
 const App = () => {
-  const [todos, setTodos] = useState(
-    createBulkTodos,
-    //   [
-    //   {
-    //     id: 1,
-    //     text: '리액트 기초 공부',
-    //     checked: true,
-    //   },
-    //   {
-    //     id: 2,
-    //     text: '컴포넌트 스타일링',
-    //     checked: true,
-    //   },
-    //   {
-    //     id: 3,
-    //     text: '일정관리앱 만들기',
-    //     checked: false,
-    //   },
-    // ]
-  );
+  const [todos, dispatch] = useReducer(todoReducer, undefined, createBulkTodos);
+
+  // const [todos, setTodos] = useState(
+  //   createBulkTodos,
+  //   //   [
+  //   //   {
+  //   //     id: 1,
+  //   //     text: '리액트 기초 공부',
+  //   //     checked: true,
+  //   //   },
+  //   //   {
+  //   //     id: 2,
+  //   //     text: '컴포넌트 스타일링',
+  //   //     checked: true,
+  //   //   },
+  //   //   {
+  //   //     id: 3,
+  //   //     text: '일정관리앱 만들기',
+  //   //     checked: false,
+  //   //   },
+  //   // ]
+  // );
 
   // const nextId = useRef(4);
   const nextId = useRef(2501);
@@ -49,20 +69,16 @@ const App = () => {
       text,
       checked: false,
     };
-    setTodos((todos) => todos.concat(todo));
+    dispatch({ type: 'INSERT', todo });
     nextId.current += 1;
   }, []);
 
   const onRemove = useCallback((id) => {
-    setTodos((todos) => todos.filter((todo) => todo.id !== id));
+    dispatch({ type: 'REMOVE', id });
   }, []);
 
   const onToggle = useCallback((id) => {
-    setTodos((todos) =>
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, checked: !todo.checked } : todo,
-      ),
-    );
+    dispatch({ type: 'TOGGLE', id });
   }, []);
 
   return (
